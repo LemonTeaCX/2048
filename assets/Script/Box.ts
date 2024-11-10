@@ -6,7 +6,7 @@ import {
 const { ccclass, property } = _decorator
 
 import { Manager } from 'db://assets/Script/Manager'
-import type { BoxType, BoxAttr, } from 'db://assets/Script/Type'
+import type { BoxType, BoxAttr, BoxIndex } from 'db://assets/Script/Type'
 
 const BOX_TYPE: BoxType = {
     0: new Color('#c8beb3'),
@@ -48,8 +48,14 @@ export class Box extends Component {
         }
     }
 
-    private moveBox() {
-        // this.node
+    public move(position: BoxAttr['position'], type?: string) {
+        const node = this.node
+
+        node.setPosition(position)
+
+        if (type) {
+            node.getChildByName('Value').getComponent(Label).string = type
+        }
     }
 }
 

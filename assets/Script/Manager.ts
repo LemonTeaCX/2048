@@ -27,7 +27,7 @@ const getPosition = (mapSize: [ number, number ], mapGrid: [ number, number ], m
             // 计算格子中心点坐标，考虑到网格边缘的间距
             const x = (j * (cellWidth + mapGap)) + mapGap + (cellWidth / 2) - (mapWidth / 2)
             const y = (i * (cellHeight + mapGap)) + mapGap + (cellHeight / 2) - (mapHeight / 2)
-            rowPositions.push([x, y])
+            rowPositions.push([x, -y])
         }
         positions.push(rowPositions)
     }
@@ -125,27 +125,26 @@ export class Manager extends Component {
     // 初始化盒子和位置信息
     private initBox() {
         const { Box, mapSize, mapGrid, mapGap } = this
-        const [ row, col ] = mapGrid
         const { positions, cellWidth, cellHeight } = getPosition(mapSize, mapGrid, mapGap)
 
         this.boxSize = new Size(cellWidth, cellHeight)
         this.positionList = positions
 
-        console.log(positions, row, col)
-        Array.from({ length: row }, (_, y) => {
-            Array.from({ length: col }, (_, x) => {
+        positions.forEach((col, y) => {
+            col.forEach((row, x) => {
                 const box = instantiate(Box)
 
                 this.boxAttr = {
                     index: [ x, y ],
                     type: 0,
-                    position: new Vec3(...positions[x][y], 0),
+                    position: new Vec3(...row, 0),
                     size: new Size(cellWidth, cellHeight),
                     node: box
                 }
                 this.MapBg.addChild(box)
             })
         })
+
         this.randomBox()
     }
 
@@ -164,7 +163,12 @@ export class Manager extends Component {
 
     // 随机生成 2 个盒子
     private randomBox() {
-        Array.from({ length: 2 }, () => {
+        if (this.boxList.length >= 15) {
+            console.log('game over')
+            return
+        }
+
+        Array.from({ length: 1 }, () => {
             let index: BoxIndex = [ randomInt(3), randomInt(3) ]
 
             while (this.boxList.find(item => item.index.toString() === index.toString())) {
@@ -186,21 +190,22 @@ export class Manager extends Component {
 
     // 根据方向更新盒子位置与数字
     private updateBox(direction: Direction) {
+        console.log(direction)
         const [ row, col ] = this.mapGrid
         let getIndexNum = (x: number, y: number) => ([ x, y ])
 
         switch (direction) {
             case 'right':
-                getIndexNum = (x, y) => ([ row-1-x, y ])
+                getIndexNum = (x, y) => ([ y, row-1-x ])
                 break
             case 'left':
-                getIndexNum = (x, y) => ([ x, y ])
-                break
-            case 'up':
                 getIndexNum = (x, y) => ([ y, x ])
                 break
+            case 'up':
+                getIndexNum = (x, y) => ([ x, y ])
+                break
             case 'down':
-                getIndexNum = (x, y) => ([ y, col-1-x ])
+                getIndexNum = (x, y) => ([ col-1-x, y ])
                 break
         }
 
@@ -209,29 +214,88 @@ export class Manager extends Component {
             Array.from({ length: col }, (_, x) => {
                 line.push(getIndexNum(x, y))
             })
-            this.updateBoxLine(line)
+            this.updateBoxLine(line, direction)
         })
 
-        // this.randomBox()
+        this.randomBox()
     }
     // 更新每一行盒子位置与数字
-    private updateBoxLine(line: BoxIndex[]) {
-        line.forEach(item => {
-            console.log(item)
-            const [ row, col ] = item
-            // const position = this.positionList[row][col]
+    private updateBoxLine(line: BoxIndex[], direction: Direction) {
+        let preBox = null
+        let preIndex = null
+        let isPreConcat = false
 
-            const box = this.boxList.find(item => item.index.toString() === item.toString())
+        line.forEach((item, index) => {
+            const box = this.boxList.find(boxItem => boxItem.index.toString() === item.toString())
 
             if (!box) return
 
-            this.updateBoxOne()
+            preIndex = preBox ? this.getPreIndex(preBox.index, direction) : line[0]
+            const result = this.updateBoxOne(box, preBox, isPreConcat, preIndex)
+
+            isPreConcat = result.isConcat
+            preBox = result.box
         })
     }
-
     // 更新一个盒子位置与数字
-    private updateBoxOne() {
+    private updateBoxOne(box: BoxAttr, preBox: BoxAttr, isPreConcat: boolean, preIndex: BoxIndex) {
+        let isConcat = false
 
+        // console.log('box1', JSON.stringify(box.index), JSON.stringify(box.position))
+
+        // 合并需要满足的条件：存在上一个盒子 & 上次没有合并过 & type 值相等
+        if (preBox && !isPreConcat && box.type === preBox.type) {
+            let delIndex = preBox.index
+
+            // 移除第一个 box
+            this.boxList = this.boxList.filter(boxItem => boxItem.index.toString() !== delIndex.toString())
+            this.MapBg.removeChild(preBox.node)
+
+            // 第二个 box 数值增加
+            let prePosition = new Vec3(...this.positionList[delIndex[0]][delIndex[1]], 0)
+            box.type = box.type + box.type
+            box.index = delIndex
+            box.position = prePosition
+            box.instance.move(prePosition, box.type+'')
+
+            isConcat = true
+        } else {
+            // 只需要移动到上个盒子前一个位置
+            let prePosition = new Vec3(...this.positionList[preIndex[0]][preIndex[1]], 0)
+
+            box.index = preIndex
+            box.position = prePosition
+            box.instance.move(prePosition)
+            isConcat = false
+        }
+
+        // console.log('box2', JSON.stringify(box.index), JSON.stringify(box.position))
+
+        return { isConcat, box }
+    }
+    // 根据方向获取盒子前一个位置
+    getPreIndex(index: BoxIndex, direction: Direction): BoxIndex {
+        const [ x, y ] = index
+        const [ maxX, maxY ] = this.mapGrid.map(item => item -1)
+        let preX = x
+        let preY = y
+
+        switch (direction) {
+            case 'right':
+                preY = y-1 < 0 ? 0 : y-1
+                break
+            case 'left':
+                preY = y+1 > maxY ? maxY : y+1
+                break
+            case 'up':
+                preX = x+1 > maxX ? maxX : x+1
+                break
+            case 'down':
+                preX = x-1 < 0 ? 0 : x-1
+                break
+        }
+
+        return [ preX, preY ]
     }
 }
 
