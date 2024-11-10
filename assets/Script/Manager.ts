@@ -162,11 +162,6 @@ export class Manager extends Component {
         }
     }
 
-    // 获取盒子实例
-    public getBoxInstance(instance: Box) {
-        // this.boxTasks
-    }
-
     // 随机生成 2 个盒子
     private randomBox() {
         Array.from({ length: 2 }, () => {

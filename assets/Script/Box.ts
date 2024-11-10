@@ -17,9 +17,6 @@ const BOX_TYPE: BoxType = {
 @ccclass('Box')
 export class Box extends Component {
     onLoad() {
-        // Manager.Instance.getBoxInstance(this)
-        // this.init()
-
         Manager.Instance.eventTarget.emit('boxInstantiate', this)
     }
 
@@ -36,9 +33,7 @@ export class Box extends Component {
     }
 
     private initEvent() {
-        Manager.Instance.eventTarget.once('boxInstantiate', (attr: BoxAttr) => {
-            this.setAttr(attr)
-        })
+
     }
 
     public setAttr({ type, size, position }: BoxAttr) {
