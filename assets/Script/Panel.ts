@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, CCString, CCInteger, Label } from 'cc';
+import { _decorator, Component, CCString, CCInteger, Label } from 'cc';
 const { ccclass, property } = _decorator;
 
 @ccclass('Panel')
@@ -14,14 +14,6 @@ export class Panel extends Component {
 
     onLoad(): void {
         this.init()
-    }
-
-    start() {
-
-    }
-
-    update(deltaTime: number) {
-        
     }
 
     private init() {

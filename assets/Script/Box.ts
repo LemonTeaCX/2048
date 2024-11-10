@@ -3,10 +3,10 @@ import {
     Color,
     UITransform, Sprite, Label
 } from 'cc'
-const { ccclass, property } = _decorator
+const { ccclass } = _decorator
 
 import { Manager } from 'db://assets/Script/Manager'
-import type { BoxType, BoxAttr, BoxIndex } from 'db://assets/Script/Type'
+import type { BoxType, BoxAttr } from 'db://assets/Script/Type'
 
 const BOX_TYPE: BoxType = {
     0: new Color('#c8beb3'),
@@ -18,21 +18,10 @@ const BOX_TYPE: BoxType = {
 export class Box extends Component {
     onLoad() {
         Manager.Instance.eventTarget.emit('boxInstantiate', this)
-    }
-
-    start() {
-
-    }
-
-    update(deltaTime: number) {
-        
+        this.init()
     }
 
     private init() {
-        this.initEvent()
-    }
-
-    private initEvent() {
 
     }
 

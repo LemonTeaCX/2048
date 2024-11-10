@@ -79,9 +79,9 @@ export class Manager extends Component {
     start() {
     }
 
-    update(deltaTime: number) {
-        
-    }
+    // update(deltaTime: number) {
+    //
+    // }
 
     private init() {
         this.initInstance()
@@ -225,7 +225,7 @@ export class Manager extends Component {
         let preIndex = null
         let isPreConcat = false
 
-        line.forEach((item, index) => {
+        line.forEach((item) => {
             const box = this.boxList.find(boxItem => boxItem.index.toString() === item.toString())
 
             if (!box) return
