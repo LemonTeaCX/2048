@@ -7,6 +7,7 @@ const { ccclass, property } = _decorator
 
 import type { BoxIndex, BoxAttr } from 'db://assets/Script/Type'
 import { Box } from 'db://assets/Script/Box'
+import { Panel } from 'db://assets/Script/Panel'
 
 // 获取 0-num 的随机自然数
 const randomInt = (num: number) => Math.floor(Math.random() * (num+1))
@@ -72,16 +73,23 @@ export class Manager extends Component {
     // 盒子列表
     private boxList: BoxAttr[] = []
 
-    onLoad() {
+    // 面板对象
+    private panels: {
+        score: Panel | null
+        total: Panel | null
+    } = {
+        'score': null,
+        'total': null,
+    }
+    // 分数
+    private score: number = 0
+
+    protected onLoad() {
         this.init()
     }
 
-    start() {
+    protected start() {
     }
-
-    // update(deltaTime: number) {
-    //
-    // }
 
     private init() {
         this.initInstance()
@@ -102,6 +110,9 @@ export class Manager extends Component {
         this.eventTarget = new EventTarget()
         this.eventTarget.on('boxInstantiate', (instance: Box) => {
             this.initBoxInstance(instance)
+        })
+        this.eventTarget.on('panelInstantiate', (instance: Panel) => {
+            this.initPanelInstance(instance)
         })
 
         let isTouching = false // 用于控制每次移动只触发一次
@@ -168,7 +179,7 @@ export class Manager extends Component {
             return
         }
 
-        Array.from({ length: 1 }, () => {
+        Array.from({ length: 2 }, () => {
             let index: BoxIndex = [ randomInt(3), randomInt(3) ]
 
             while (this.boxList.find(item => item.index.toString() === index.toString())) {
@@ -190,7 +201,6 @@ export class Manager extends Component {
 
     // 根据方向更新盒子位置与数字
     private updateBox(direction: Direction) {
-        console.log(direction)
         const [ row, col ] = this.mapGrid
         let getIndexNum = (x: number, y: number) => ([ x, y ])
 
@@ -231,14 +241,14 @@ export class Manager extends Component {
             if (!box) return
 
             preIndex = preBox ? this.getPreIndex(preBox.index, direction) : line[0]
-            const result = this.updateBoxOne(box, preBox, isPreConcat, preIndex)
+            const result = this.updateBoxOne(box, preBox, isPreConcat, preIndex, direction)
 
             isPreConcat = result.isConcat
             preBox = result.box
         })
     }
     // 更新一个盒子位置与数字
-    private updateBoxOne(box: BoxAttr, preBox: BoxAttr, isPreConcat: boolean, preIndex: BoxIndex) {
+    private updateBoxOne(box: BoxAttr, preBox: BoxAttr, isPreConcat: boolean, preIndex: BoxIndex, direction: Direction) {
         let isConcat = false
 
         // console.log('box1', JSON.stringify(box.index), JSON.stringify(box.position))
@@ -255,17 +265,21 @@ export class Manager extends Component {
             let prePosition = new Vec3(...this.positionList[delIndex[0]][delIndex[1]], 0)
             box.type = box.type + box.type
             box.index = delIndex
+            box.instance.move(direction, prePosition, box.type+'')
             box.position = prePosition
-            box.instance.move(prePosition, box.type+'')
 
             isConcat = true
+
+            // 更新分数
+            this.score += box.type
+            this.panels['score'].setScore(this.score)
         } else {
             // 只需要移动到上个盒子前一个位置
             let prePosition = new Vec3(...this.positionList[preIndex[0]][preIndex[1]], 0)
 
             box.index = preIndex
+            box.instance.move(direction, prePosition)
             box.position = prePosition
-            box.instance.move(prePosition)
             isConcat = false
         }
 
@@ -274,7 +288,7 @@ export class Manager extends Component {
         return { isConcat, box }
     }
     // 根据方向获取盒子前一个位置
-    getPreIndex(index: BoxIndex, direction: Direction): BoxIndex {
+    private getPreIndex(index: BoxIndex, direction: Direction): BoxIndex {
         const [ x, y ] = index
         const [ maxX, maxY ] = this.mapGrid.map(item => item -1)
         let preX = x
@@ -296,6 +310,10 @@ export class Manager extends Component {
         }
 
         return [ preX, preY ]
+    }
+
+    private initPanelInstance(instance: Panel) {
+        this.panels[instance.key] = instance
     }
 }
 

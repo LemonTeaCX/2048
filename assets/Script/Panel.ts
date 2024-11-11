@@ -1,19 +1,24 @@
 import { _decorator, Component, CCString, CCInteger, Label } from 'cc';
+import { Manager } from 'db://assets/Script/Manager'
 const { ccclass, property } = _decorator;
 
 @ccclass('Panel')
 export class Panel extends Component {
+    @property({ type: CCString, tooltip: '唯一名称标识' })
+    public key: string = 'key'
+
     @property({ type: CCString, tooltip: '标题' })
     private title: string = 'title'
 
-    @property({ type: CCInteger, tooltip: '分数' })
-    private value: number = 0
+    // 分数面板
+    private scoreLabel: Label = null
 
     @property({ type: CCString, tooltip: '按钮名称' })
     private  btnName: string = '按钮'
 
-    onLoad(): void {
+    protected onLoad(): void {
         this.init()
+        Manager.Instance.eventTarget.emit('panelInstantiate', this)
     }
 
     private init() {
@@ -28,8 +33,13 @@ export class Panel extends Component {
         const BtnLabel = Button.getChildByName('Label')
 
         Title.getComponent(Label).string = this.title
-        Value.getComponent(Label).string = this.value+''
         BtnLabel.getComponent(Label).string = this.btnName
+
+        this.scoreLabel = Value.getComponent(Label)
+    }
+
+    public setScore(score: number) {
+        this.scoreLabel.string = score+''
     }
 }
 

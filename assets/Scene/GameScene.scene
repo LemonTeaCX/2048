@@ -23,7 +23,7 @@
     "_active": true,
     "_components": [],
     "_prefab": {
-      "__id__": 49
+      "__id__": 51
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -54,7 +54,7 @@
     },
     "autoReleaseAssets": false,
     "_globals": {
-      "__id__": 50
+      "__id__": 52
     },
     "_id": "3322e43a-bf5a-4074-b24a-8614f35d58d6"
   },
@@ -86,13 +86,13 @@
     "_active": true,
     "_components": [
       {
-        "__id__": 46
-      },
-      {
-        "__id__": 47
-      },
-      {
         "__id__": 48
+      },
+      {
+        "__id__": 49
+      },
+      {
+        "__id__": 50
       }
     ],
     "_prefab": null,
@@ -619,13 +619,13 @@
         "__id__": 23
       },
       {
-        "__id__": 34
+        "__id__": 35
       }
     ],
     "_active": true,
     "_components": [
       {
-        "__id__": 45
+        "__id__": 47
       }
     ],
     "_prefab": null,
@@ -954,6 +954,9 @@
       },
       {
         "__id__": 33
+      },
+      {
+        "__id__": 34
       }
     ],
     "removedComponents": []
@@ -1047,20 +1050,30 @@
     "value": "菜单"
   },
   {
+    "__type__": "CCPropertyOverrideInfo",
+    "targetInfo": {
+      "__id__": 32
+    },
+    "propertyPath": [
+      "key"
+    ],
+    "value": "score"
+  },
+  {
     "__type__": "cc.Node",
     "_objFlags": 0,
     "_parent": {
       "__id__": 16
     },
     "_prefab": {
-      "__id__": 35
+      "__id__": 36
     },
     "__editorExtras__": {}
   },
   {
     "__type__": "cc.PrefabInfo",
     "root": {
-      "__id__": 34
+      "__id__": 35
     },
     "asset": {
       "__uuid__": "29e86742-9968-4f76-ad75-ace48ba5e465",
@@ -1068,7 +1081,7 @@
     },
     "fileId": "c46/YsCPVOJYA4mWEpNYRx",
     "instance": {
-      "__id__": 36
+      "__id__": 37
     },
     "targetOverrides": null,
     "nestedPrefabInstanceRoots": null
@@ -1081,10 +1094,7 @@
     "mountedComponents": [],
     "propertyOverrides": [
       {
-        "__id__": 37
-      },
-      {
-        "__id__": 39
+        "__id__": 38
       },
       {
         "__id__": 40
@@ -1096,7 +1106,13 @@
         "__id__": 42
       },
       {
-        "__id__": 44
+        "__id__": 43
+      },
+      {
+        "__id__": 45
+      },
+      {
+        "__id__": 46
       }
     ],
     "removedComponents": []
@@ -1104,7 +1120,7 @@
   {
     "__type__": "CCPropertyOverrideInfo",
     "targetInfo": {
-      "__id__": 38
+      "__id__": 39
     },
     "propertyPath": [
       "_name"
@@ -1120,7 +1136,7 @@
   {
     "__type__": "CCPropertyOverrideInfo",
     "targetInfo": {
-      "__id__": 38
+      "__id__": 39
     },
     "propertyPath": [
       "_lpos"
@@ -1135,7 +1151,7 @@
   {
     "__type__": "CCPropertyOverrideInfo",
     "targetInfo": {
-      "__id__": 38
+      "__id__": 39
     },
     "propertyPath": [
       "_lrot"
@@ -1151,7 +1167,7 @@
   {
     "__type__": "CCPropertyOverrideInfo",
     "targetInfo": {
-      "__id__": 38
+      "__id__": 39
     },
     "propertyPath": [
       "_euler"
@@ -1166,7 +1182,7 @@
   {
     "__type__": "CCPropertyOverrideInfo",
     "targetInfo": {
-      "__id__": 43
+      "__id__": 44
     },
     "propertyPath": [
       "title"
@@ -1182,12 +1198,22 @@
   {
     "__type__": "CCPropertyOverrideInfo",
     "targetInfo": {
-      "__id__": 43
+      "__id__": 44
     },
     "propertyPath": [
       "btnName"
     ],
     "value": "世界榜单"
+  },
+  {
+    "__type__": "CCPropertyOverrideInfo",
+    "targetInfo": {
+      "__id__": 44
+    },
+    "propertyPath": [
+      "key"
+    ],
+    "value": "total"
   },
   {
     "__type__": "cc.UITransform",
@@ -1291,35 +1317,35 @@
         "__id__": 23
       },
       {
-        "__id__": 34
+        "__id__": 35
       }
     ]
   },
   {
     "__type__": "cc.SceneGlobals",
     "ambient": {
-      "__id__": 51
-    },
-    "shadows": {
-      "__id__": 52
-    },
-    "_skybox": {
       "__id__": 53
     },
-    "fog": {
+    "shadows": {
       "__id__": 54
     },
-    "octree": {
+    "_skybox": {
       "__id__": 55
     },
-    "skin": {
+    "fog": {
       "__id__": 56
     },
-    "lightProbeInfo": {
+    "octree": {
       "__id__": 57
     },
-    "postSettings": {
+    "skin": {
       "__id__": 58
+    },
+    "lightProbeInfo": {
+      "__id__": 59
+    },
+    "postSettings": {
+      "__id__": 60
     },
     "bakedWithStationaryMainLight": false,
     "bakedWithHighpLightmap": false
