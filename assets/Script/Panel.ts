@@ -1,4 +1,4 @@
-import { _decorator, Component, CCString, CCInteger, Label } from 'cc';
+import { _decorator, Component, CCString, Label } from 'cc';
 import { Manager } from 'db://assets/Script/Manager'
 const { ccclass, property } = _decorator;
 

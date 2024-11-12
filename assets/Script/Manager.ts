@@ -1,5 +1,6 @@
 import {
-    _decorator, Component, Node, Prefab, instantiate, CCInteger,
+    _decorator, Component, Node, Prefab, instantiate,
+    CCInteger, CCFloat,
     EventTarget, EventTouch,
     Vec3, Size,
 } from 'cc'
@@ -60,6 +61,9 @@ export class Manager extends Component {
 
     @property({ type: CCInteger, tooltip: '地图间距' })
     private mapGap: number = 10
+
+    @property({ type: CCFloat, tooltip: '盒子移动过程总时间' })
+    private moveTime: number = 0.2
 
     // 位置信息
     private positionList: Position[][] = []
@@ -310,6 +314,11 @@ export class Manager extends Component {
         }
 
         return [ preX, preY ]
+    }
+
+    // 移动过程总时间
+    public getMoveTime(): number {
+        return this.moveTime
     }
 
     private initPanelInstance(instance: Panel) {

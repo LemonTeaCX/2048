@@ -1,9 +1,9 @@
 import {
-    _decorator, Component, Node, Vec3,
+    _decorator, Component, Vec3,
     Color,
     UITransform, Sprite, Label
 } from 'cc'
-const { ccclass } = _decorator
+const { ccclass, } = _decorator
 
 import { Manager } from 'db://assets/Script/Manager'
 import type { BoxType, BoxAttr } from 'db://assets/Script/Type'
@@ -23,18 +23,20 @@ const BOX_TYPE: BoxType = {
     2048: new Color('#EDC22E'),
 }
 
+type MoveInfo = {
+    moveTime: number
+    allTime: number
+    direction: string
+    position: BoxAttr['position']
+    getPosition: (x: number, y: number, t: number) => [number, number]
+}
+
 @ccclass('Box')
 export class Box extends Component {
     private valueLabel: Label | null = null
     private boxSprite: Sprite | null = null
 
-    private moveInfo: {
-        moveTime: number
-        direction: string
-        position: BoxAttr['position']
-    } | null = null
-
-    private moveTime: number = 0
+    private moveInfo: MoveInfo | null = null
 
     protected onLoad() {
         this.init()
@@ -63,28 +65,34 @@ export class Box extends Component {
     }
 
     public move(direction: string, position: BoxAttr['position'], type?: string) {
-        let getPosition = () => new Vec3()
+        const nowPosition = this.node.getPosition()
+        const disX = Math.abs(nowPosition.x - position.x)
+        const disY = Math.abs(nowPosition.y - position.y)
+        const allTime = Manager.Instance.getMoveTime()
+        const speed = (disX || disY) / allTime
+        let getPosition: MoveInfo['getPosition'] = (x, y, t) => [ x+(speed*t), y ]
 
-        // switch(direction) {
-        //     case 'right':
-        //         moveX += deltaTime * 100
-        //         getPosition = (x, y) => new Vec3(x)
-        //         break
-        //     case 'left':
-        //         moveX -= deltaTime * 100
-        //         break
-        //     case 'up':
-        //         moveY += deltaTime * 100
-        //         break
-        //     case 'down':
-        //         moveY -= deltaTime * 100
-        //         break
-        // }
+        switch(direction) {
+            case 'right':
+                getPosition = (x, y, t) => [ x+(speed*t), y ]
+                break
+            case 'left':
+                getPosition = (x, y, t) => [ x-(speed*t), y ]
+                break
+            case 'up':
+                getPosition = (x, y, t) => [ x, y+(speed*t) ]
+                break
+            case 'down':
+                getPosition = (x, y, t) => [ x, y-(speed*t) ]
+                break
+        }
 
         this.moveInfo = {
             moveTime: 0,
+            allTime,
             direction,
             position,
+            getPosition,
         }
         // this.node.setPosition(position)
 
@@ -97,39 +105,20 @@ export class Box extends Component {
     private updatePosition(deltaTime: number) {
         if (!this.moveInfo) return
 
-        const { moveTime, direction, position } = this.moveInfo
+        const { moveTime, allTime, position, getPosition } = this.moveInfo
 
-        if (moveTime >= 1) {
+        if (moveTime >= allTime) {
             // 结束
             this.node.setPosition(position)
             this.moveInfo = null
         } else {
             // 移动中
-            this.moveInfo.moveTime += deltaTime
-
-            const curPosition = this.node.getPosition()
-            const movePosition = new Vec3()
-
-            let moveX = curPosition.x
-            let moveY = curPosition.y
-            switch(direction) {
-                case 'right':
-                    moveX += deltaTime * 100
-                    break
-                case 'left':
-                    moveX -= deltaTime * 100
-                    break
-                case 'up':
-                    moveY += deltaTime * 100
-                    break
-                case 'down':
-                    moveY -= deltaTime * 100
-                    break
-            }
-            movePosition.x = moveX
-            movePosition.y = moveY
+            const { x: nowX, y: nowY } = this.node.getPosition()
+            const [ moveX, moveY ] = getPosition(nowX, nowY, deltaTime)
+            const movePosition = new Vec3(moveX, moveY, 0)
 
             this.node.setPosition(movePosition)
+            this.moveInfo.moveTime += deltaTime
         }
     }
 }

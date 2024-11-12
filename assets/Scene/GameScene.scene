@@ -312,6 +312,7 @@
       4
     ],
     "mapGap": 10,
+    "moveTime": 0.2,
     "_id": "a039AD1IRNHLMEBCP/5NRD"
   },
   {
@@ -1249,7 +1250,7 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 750.0000000000001,
+      "width": 750,
       "height": 1334
     },
     "_anchorPoint": {
