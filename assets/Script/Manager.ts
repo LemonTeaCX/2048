@@ -6,6 +6,8 @@ import {
 } from 'cc'
 const { ccclass, property } = _decorator
 
+import { AudioController } from 'db://assets/Script/AudioController'
+
 import type { BoxIndex, BoxAttr } from 'db://assets/Script/Type'
 import { Box } from 'db://assets/Script/Box'
 import { Panel } from 'db://assets/Script/Panel'
@@ -53,6 +55,9 @@ export class Manager extends Component {
     @property({ type: Prefab, tooltip: '盒子预制体' })
     private Box: Prefab | null = null
 
+    @property({ type: Node, tooltip: '结束模板' })
+    private Gameover: Node | null = null
+
     @property({ type: [ CCInteger, CCInteger ], tooltip: '地图尺寸' })
     private mapSize: [ number, number ] = [ 640, 640 ]
 
@@ -97,6 +102,7 @@ export class Manager extends Component {
 
     private init() {
         this.initInstance()
+        this.initState()
         this.initEvent()
         this.initBox()
     }
@@ -107,6 +113,11 @@ export class Manager extends Component {
     }
     public static get Instance() {
         return this._instance
+    }
+
+    // 初始化游戏状态
+    private initState() {
+        this.Gameover.active = false
     }
 
     // 初始化事件
@@ -160,6 +171,8 @@ export class Manager extends Component {
             })
         })
 
+        // 初始化生成两个 box
+        this.randomBox()
         this.randomBox()
     }
 
@@ -176,31 +189,29 @@ export class Manager extends Component {
         }
     }
 
-    // 随机生成 2 个盒子
+    // 随机生成 1 个盒子
     private randomBox() {
         if (this.boxList.length >= 15) {
             console.log('game over')
             return
         }
 
-        Array.from({ length: 2 }, () => {
-            let index: BoxIndex = [ randomInt(3), randomInt(3) ]
+        let index: BoxIndex = [ randomInt(3), randomInt(3) ]
 
-            while (this.boxList.find(item => item.index.toString() === index.toString())) {
-                index = [ randomInt(3), randomInt(3) ]
-            }
+        while (this.boxList.find(item => item.index.toString() === index.toString())) {
+            index = [ randomInt(3), randomInt(3) ]
+        }
 
-            const box = instantiate(this.Box)
+        const box = instantiate(this.Box)
 
-            this.boxAttr = {
-                index,
-                type: 2,
-                position: new Vec3(...this.positionList[index[0]][index[1]], 0),
-                size: this.boxSize,
-                node: box,
-            }
-            this.MapBg.addChild(box)
-        })
+        this.boxAttr = {
+            index,
+            type: 2,
+            position: new Vec3(...this.positionList[index[0]][index[1]], 0),
+            size: this.boxSize,
+            node: box,
+        }
+        this.MapBg.addChild(box)
     }
 
     // 根据方向更新盒子位置与数字
@@ -277,6 +288,8 @@ export class Manager extends Component {
             // 更新分数
             this.score += box.type
             this.panels['score'].setScore(this.score)
+
+            AudioController.Instance.playScore()
         } else {
             // 只需要移动到上个盒子前一个位置
             let prePosition = new Vec3(...this.positionList[preIndex[0]][preIndex[1]], 0)
@@ -285,6 +298,8 @@ export class Manager extends Component {
             box.instance.move(direction, prePosition)
             box.position = prePosition
             isConcat = false
+
+            AudioController.Instance.playCreate()
         }
 
         // console.log('box2', JSON.stringify(box.index), JSON.stringify(box.position))
