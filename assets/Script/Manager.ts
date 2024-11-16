@@ -1,7 +1,8 @@
 import {
     _decorator, Component, Node, Prefab, instantiate,
+    Label, Button,
     CCInteger, CCFloat,
-    EventTarget, EventTouch,
+    EventTarget, EventTouch, input, Input,
     Vec3, Size,
 } from 'cc'
 const { ccclass, property } = _decorator
@@ -58,6 +59,25 @@ export class Manager extends Component {
     @property({ type: Node, tooltip: '结束模板' })
     private Gameover: Node | null = null
 
+    @property({ type: Label, tooltip: '结束模板分数' })
+    private GameoverScoreLabel: Label | null = null
+
+    @property({ type: Node, tooltip: '结束重新开始按钮' })
+    private RestartButton: Node | null = null
+
+    // 菜单
+    @property({ type: Node, tooltip: '菜单' })
+    private Menu: Node | null = null
+
+    @property({ type: Node, tooltip: '继续按钮' })
+    private ContinueButton: Node | null = null
+
+    @property({ type: Node, tooltip: '菜单重新开始按钮' })
+    private MenuRestartButton: Node | null = null
+
+    @property({ type: Node, tooltip: '关闭音效按钮' })
+    private CloseAudioButton: Node | null = null
+
     @property({ type: [ CCInteger, CCInteger ], tooltip: '地图尺寸' })
     private mapSize: [ number, number ] = [ 640, 640 ]
 
@@ -93,6 +113,12 @@ export class Manager extends Component {
     // 分数
     private score: number = 0
 
+    // 游戏状态
+    private gameState: 'playing' | 'menu' | 'over' = 'playing'
+
+    // 是否有音效
+    private isAudio: boolean = true
+
     protected onLoad() {
         this.init()
     }
@@ -102,9 +128,9 @@ export class Manager extends Component {
 
     private init() {
         this.initInstance()
-        this.initState()
         this.initEvent()
         this.initBox()
+        this.initState()
     }
 
     // 初始化实例
@@ -117,7 +143,27 @@ export class Manager extends Component {
 
     // 初始化游戏状态
     private initState() {
+        this.gameState = 'playing'
+
+        // 菜单
+        this.Menu.active = false
+
+        // 结束面板隐藏
         this.Gameover.active = false
+
+        // 初始化盒子数量
+        this.boxList.forEach(box => {
+            this.MapBg.removeChild(box.node)
+        })
+        this.boxList = []
+
+        // 初始化生成两个 box
+        this.randomBox()
+        this.randomBox()
+
+        // 分数归 0
+        this.score = 0
+        this.panels['score']?.setScore(this.score)
     }
 
     // 初始化事件
@@ -133,6 +179,7 @@ export class Manager extends Component {
         let isTouching = false // 用于控制每次移动只触发一次
         this.MapBg.on(Node.EventType.TOUCH_START, () => isTouching = false, this)
         this.MapBg.on(Node.EventType.TOUCH_MOVE, (event: EventTouch) => {
+            if (this.gameState !== 'playing') return
             if (isTouching) return
             isTouching = true
 
@@ -146,6 +193,44 @@ export class Manager extends Component {
                 this.updateBox(y > 0 ? 'up' : 'down')
             }
         }, this)
+        input.on(Input.EventType.KEY_DOWN, (event) => {
+            if (this.gameState !== 'playing') return
+
+            let direction: Direction = 'left'
+
+            switch (event.keyCode) {
+                case 37:
+                    direction = 'left'
+                    break;
+                case 38:
+                    direction = 'up'
+                    break;
+                case 39:
+                    direction = 'right'
+                    break;
+                case 40:
+                    direction = 'down'
+                    break;
+            }
+
+            this.updateBox(direction)
+        }, this)
+
+        this.RestartButton.on(Node.EventType.TOUCH_END, this.initState, this)
+
+        // 菜单
+        this.ContinueButton.on(Node.EventType.TOUCH_END, () => {
+            this.gameState = 'playing'
+            this.Menu.active = false
+        }, this)
+        this.MenuRestartButton.on(Node.EventType.TOUCH_END, () => {
+            this.initState()
+        })
+        this.CloseAudioButton.on(Node.EventType.TOUCH_END, () => {
+            this.isAudio = !this.isAudio
+            const BtnLabel = this.CloseAudioButton.getChildByName('Label')
+            BtnLabel.getComponent(Label).string = this.isAudio ? '关闭音效' : '打开音效'
+        })
     }
 
     // 初始化盒子和位置信息
@@ -170,10 +255,6 @@ export class Manager extends Component {
                 this.MapBg.addChild(box)
             })
         })
-
-        // 初始化生成两个 box
-        this.randomBox()
-        this.randomBox()
     }
 
     private initBoxInstance(instance: Box) {
@@ -191,8 +272,11 @@ export class Manager extends Component {
 
     // 随机生成 1 个盒子
     private randomBox() {
-        if (this.boxList.length >= 15) {
+        if (this.boxList.length >= 16) {
             console.log('game over')
+            this.gameState = 'over'
+            this.Gameover.active = true
+            this.GameoverScoreLabel.string = this.score + ''
             return
         }
 
@@ -289,7 +373,7 @@ export class Manager extends Component {
             this.score += box.type
             this.panels['score'].setScore(this.score)
 
-            AudioController.Instance.playScore()
+            this.isAudio && AudioController.Instance.playScore()
         } else {
             // 只需要移动到上个盒子前一个位置
             let prePosition = new Vec3(...this.positionList[preIndex[0]][preIndex[1]], 0)
@@ -299,7 +383,7 @@ export class Manager extends Component {
             box.position = prePosition
             isConcat = false
 
-            AudioController.Instance.playCreate()
+            this.isAudio && AudioController.Instance.playCreate()
         }
 
         // console.log('box2', JSON.stringify(box.index), JSON.stringify(box.position))
@@ -338,6 +422,10 @@ export class Manager extends Component {
 
     private initPanelInstance(instance: Panel) {
         this.panels[instance.key] = instance
+        // 菜单
+        this.panels['score'].Button.on(Node.EventType.TOUCH_END, () => {
+            this.gameState = 'menu'
+            this.Menu.active = true
+        }, this)
     }
 }
-
