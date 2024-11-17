@@ -290,7 +290,7 @@ export class Manager extends Component {
 
         this.boxAttr = {
             index,
-            type: 2,
+            type: Math.random() > 0.6 ? 4 : 2,
             position: new Vec3(...this.positionList[index[0]][index[1]], 0),
             size: this.boxSize,
             node: box,

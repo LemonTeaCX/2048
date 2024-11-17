@@ -1,9 +1,9 @@
 import {
     _decorator, Component, Vec3,
-    Color,
-    UITransform, Sprite, Label
+    Color, Size,
+    UITransform, Label, Graphics,
 } from 'cc'
-const { ccclass, } = _decorator
+const { ccclass, property, } = _decorator
 
 import { Manager } from 'db://assets/Script/Manager'
 import type { BoxType, BoxAttr } from 'db://assets/Script/Type'
@@ -23,6 +23,13 @@ const BOX_TYPE: BoxType = {
     2048: new Color('#EDC22E'),
 }
 
+type SizeInfo = {
+    sizeTime: number
+    allTime: number
+    size: Size
+    curSize: Size
+}
+
 type MoveInfo = {
     moveTime: number
     allTime: number
@@ -33,8 +40,13 @@ type MoveInfo = {
 
 @ccclass('Box')
 export class Box extends Component {
+    @property(Label)
     private valueLabel: Label | null = null
-    private boxSprite: Sprite | null = null
+
+    @property(Graphics)
+    private Body: Graphics | null = null
+
+    private sizeInfo: SizeInfo | null = null
 
     private moveInfo: MoveInfo | null = null
 
@@ -44,20 +56,26 @@ export class Box extends Component {
     }
 
     protected update(deltaTime: number) {
+        this.updateSize(deltaTime)
         this.updatePosition(deltaTime)
     }
 
     private init() {
-        this.valueLabel = this.node.getChildByName('Value').getComponent(Label)
-        this.boxSprite = this.node.getComponent(Sprite)
     }
 
     public setAttr({ type, size, position }: BoxAttr) {
-        const node = this.node
+        const allTime = Manager.Instance.getMoveTime()
 
-        node.setPosition(position)
-        node.getComponent(UITransform).setContentSize(size)
-        this.boxSprite.color = BOX_TYPE[type]
+        this.node.setPosition(position)
+        this.Body.getComponent(UITransform).setContentSize(size)
+        this.Body.fillColor = BOX_TYPE[type]
+        // 画圆角矩形
+        this.sizeInfo = {
+            sizeTime: 0,
+            allTime,
+            size,
+            curSize: new Size(0, 0)
+        }
 
         if (type !== 0) {
             this.valueLabel.string = type+''
@@ -94,11 +112,48 @@ export class Box extends Component {
             position,
             getPosition,
         }
-        // this.node.setPosition(position)
 
         if (type) {
             this.valueLabel.string = type
-            this.boxSprite.color = BOX_TYPE[type]
+            this.Body.fillColor = BOX_TYPE[type] || BOX_TYPE[2048]
+            this.Body.fill()
+        }
+    }
+
+    public updateSize(deltaTime: number) {
+        if (!this.sizeInfo) return
+
+        const { sizeTime, allTime, size, curSize } = this.sizeInfo
+        const { width, height } = size
+        const speedX = width / allTime
+        const speedY = height / allTime
+
+        if (sizeTime >= allTime) {
+            // 结束
+            this.Body.clear()
+            this.Body.roundRect(
+              -width / 2,  //x
+              -height / 2, //y
+              width,       //w
+              height,      //h
+              20,               //r
+            )
+            this.Body.fill()
+            this.sizeInfo = null
+        } else {
+            // 更新中
+            const sWidth = curSize.width + speedX * deltaTime
+            const sHeight = curSize.height + speedY * deltaTime
+            this.Body.roundRect(
+              -sWidth / 2,  //x
+              -sHeight / 2, //y
+              sWidth,       //w
+              sHeight,      //h
+              20,               //r
+            )
+            this.Body.fill()
+            this.sizeInfo.curSize = new Size(sWidth, sHeight)
+            this.sizeInfo.sizeTime += deltaTime
         }
     }
 

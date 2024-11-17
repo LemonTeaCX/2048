@@ -3434,7 +3434,7 @@
     "propertyPath": [
       "btnName"
     ],
-    "value": "世界榜单"
+    "value": "历史榜单"
   },
   {
     "__type__": "CCPropertyOverrideInfo",
