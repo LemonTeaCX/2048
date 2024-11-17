@@ -115,6 +115,7 @@ export class Box extends Component {
 
         if (type) {
             this.valueLabel.string = type
+            this.valueLabel.color = +type > 4 ? new Color('#ffffff') : new Color('#756C63')
             this.Body.fillColor = BOX_TYPE[type] || BOX_TYPE[2048]
             this.Body.fill()
         }

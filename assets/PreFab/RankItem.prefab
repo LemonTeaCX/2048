@@ -431,7 +431,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 125.0732421875,
+      "width": 130.615234375,
       "height": 50.4
     },
     "_anchorPoint": {
@@ -462,9 +462,9 @@
     "_dstBlendFactor": 4,
     "_color": {
       "__type__": "cc.Color",
-      "r": 255,
-      "g": 255,
-      "b": 255,
+      "r": 213,
+      "g": 210,
+      "b": 211,
       "a": 255
     },
     "_string": "name",
@@ -480,7 +480,7 @@
     "_isSystemFontUsed": true,
     "_spacingX": 0,
     "_isItalic": false,
-    "_isBold": false,
+    "_isBold": true,
     "_isUnderline": false,
     "_underlineHeight": 2,
     "_cacheMode": 0,
@@ -590,7 +590,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 194.6533203125,
+      "width": 155.72265625,
       "height": 50.4
     },
     "_anchorPoint": {
@@ -629,8 +629,8 @@
     "_string": "1000000",
     "_horizontalAlign": 2,
     "_verticalAlign": 1,
-    "_actualFontSize": 50,
-    "_fontSize": 50,
+    "_actualFontSize": 40,
+    "_fontSize": 40,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
     "_overflow": 0,
@@ -724,6 +724,9 @@
     "_enabled": true,
     "__prefab": {
       "__id__": 29
+    },
+    "Bg": {
+      "__id__": 5
     },
     "RankLabel": {
       "__id__": 11

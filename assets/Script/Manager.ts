@@ -206,6 +206,11 @@ export class Manager extends Component {
 
             const { x, y } = event.getUIDelta()
 
+            console.log(Math.abs(x) , Math.abs(y))
+
+            // 控制幅度
+            if (Math.abs(Math.abs(x) - Math.abs(y)) < 0.4) return
+
             if (Math.abs(x) > Math.abs(y)) {
                 // 左右移动
                 this.updateBox(x > 0 ? 'right' : 'left')
