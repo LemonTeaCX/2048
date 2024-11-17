@@ -14,3 +14,11 @@ export type BoxAttr = {
     node?: Node | null
     instance?: Box | null,
 }
+
+export type ScoreItem = {
+    score: number
+}
+
+export type RankItemInfo = {
+    rank: number
+} & ScoreItem

@@ -1,6 +1,7 @@
 import {
-    _decorator, Component, Node, Prefab, instantiate,
-    Label, Button,
+    _decorator, Component, Node, Prefab,
+    instantiate, sys,
+    Label,
     CCInteger, CCFloat,
     EventTarget, EventTouch, input, Input,
     Vec3, Size,
@@ -9,9 +10,10 @@ const { ccclass, property } = _decorator
 
 import { AudioController } from 'db://assets/Script/AudioController'
 
-import type { BoxIndex, BoxAttr } from 'db://assets/Script/Type'
+import type { BoxIndex, BoxAttr, ScoreItem, RankItemInfo } from 'db://assets/Script/Type'
 import { Box } from 'db://assets/Script/Box'
 import { Panel } from 'db://assets/Script/Panel'
+import { RankItem } from 'db://assets/Script/RankItem'
 
 // 获取 0-num 的随机自然数
 const randomInt = (num: number) => Math.floor(Math.random() * (num+1))
@@ -42,6 +44,10 @@ const getPosition = (mapSize: [ number, number ], mapGrid: [ number, number ], m
 
 type Direction = 'left' | 'right' | 'up' | 'down'
 
+type GameState = 'playing' | 'menu' | 'rank' | 'over'
+
+
+
 @ccclass('Manager')
 export class Manager extends Component {
     // manager实例
@@ -68,6 +74,17 @@ export class Manager extends Component {
     // 菜单
     @property({ type: Node, tooltip: '菜单' })
     private Menu: Node | null = null
+
+    @property({ type: Node, tooltip: '榜单' })
+    private Rank: Node | null = null
+
+    @property({ type: Node, tooltip: '榜单列表' })
+    private RankList: Node | null = null
+
+    @property({ type: Prefab, tooltip: '榜单列表项预制体' })
+    private RankItem: Prefab | null = null
+
+    private rankItemInfo: RankItemInfo | null = null
 
     @property({ type: Node, tooltip: '继续按钮' })
     private ContinueButton: Node | null = null
@@ -114,7 +131,7 @@ export class Manager extends Component {
     private score: number = 0
 
     // 游戏状态
-    private gameState: 'playing' | 'menu' | 'over' = 'playing'
+    private gameState: GameState = 'playing'
 
     // 是否有音效
     private isAudio: boolean = true
@@ -161,9 +178,10 @@ export class Manager extends Component {
         this.randomBox()
         this.randomBox()
 
-        // 分数归 0
+        // 分数初始化
         this.score = 0
         this.panels['score']?.setScore(this.score)
+        this.setTotalScore()
     }
 
     // 初始化事件
@@ -174,6 +192,9 @@ export class Manager extends Component {
         })
         this.eventTarget.on('panelInstantiate', (instance: Panel) => {
             this.initPanelInstance(instance)
+        })
+        this.eventTarget.on('rankItemInstantiate', (instance: RankItem) => {
+            this.initRankItemInstance(instance)
         })
 
         let isTouching = false // 用于控制每次移动只触发一次
@@ -273,10 +294,7 @@ export class Manager extends Component {
     // 随机生成 1 个盒子
     private randomBox() {
         if (this.boxList.length >= 16) {
-            console.log('game over')
-            this.gameState = 'over'
-            this.Gameover.active = true
-            this.GameoverScoreLabel.string = this.score + ''
+            this.gameover()
             return
         }
 
@@ -423,9 +441,66 @@ export class Manager extends Component {
     private initPanelInstance(instance: Panel) {
         this.panels[instance.key] = instance
         // 菜单
-        this.panels['score'].Button.on(Node.EventType.TOUCH_END, () => {
+        instance.key === 'score' && this.panels['score'].Button.on(Node.EventType.TOUCH_END, () => {
             this.gameState = 'menu'
             this.Menu.active = true
         }, this)
+        // 榜单
+        if (instance.key === 'total') {
+            this.panels['total'].Button.on(Node.EventType.TOUCH_END, () => {
+                this.gameState = 'rank'
+                this.Rank.active = true
+                this.showRank()
+            }, this)
+            this.setTotalScore()
+        }
+    }
+
+    // 继续游戏
+    public gameContinue() {
+        this.gameState = 'playing'
+        this.Menu.active = false
+        this.Rank.active = false
+        this.Gameover.active = false
+    }
+
+    // 结束游戏
+    private gameover() {
+        this.gameState = 'over'
+        this.Gameover.active = true
+        this.GameoverScoreLabel.string = this.score + ''
+
+        // 保存分数
+        let scoreList: ScoreItem[] = JSON.parse(sys.localStorage.getItem('score_list') || '[]')
+        scoreList.push({ score: this.score })
+        scoreList.sort((a, b) => b.score - a.score)
+        scoreList = scoreList.slice(0, 5)
+        sys.localStorage.setItem('score_list', JSON.stringify(scoreList))
+
+        // 更新榜单列表
+        this.showRank()
+    }
+
+    private showRank() {
+        let scoreList: ScoreItem[] = JSON.parse(sys.localStorage.getItem('score_list') || '[]')
+
+        this.RankList.removeAllChildren()
+
+        scoreList.forEach((item, index) => {
+            const rankItem = instantiate(this.RankItem)
+
+            rankItem.setPosition(new Vec3(0, -index*100))
+            this.rankItemInfo = { ...item, rank: index+1 }
+            this.RankList.addChild(rankItem)
+        })
+    }
+
+    private setTotalScore() {
+        let scoreList: ScoreItem[] = JSON.parse(sys.localStorage.getItem('score_list') || '[]')
+        this.panels['total']?.setScore(scoreList[0].score)
+    }
+
+    private initRankItemInstance(instance: RankItem) {
+        instance.setAttr(this.rankItemInfo)
     }
 }
