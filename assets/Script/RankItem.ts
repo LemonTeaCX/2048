@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Sprite, Label, Color } from 'cc';
+import { _decorator, Component, sys, Sprite, Label, Color } from 'cc';
 const { ccclass, property } = _decorator;
 
 import { Manager } from 'db://assets/Script/Manager'
@@ -20,6 +20,9 @@ export class RankItem extends Component {
     @property({ type: Label, tooltip: '排名' })
     public RankLabel: Label = null
 
+    @property({ type: Label, tooltip: '姓名' })
+    public NameLabel: Label = null
+
     @property({ type: Label, tooltip: '分数' })
     public ScoreLabel: Label = null
 
@@ -35,5 +38,14 @@ export class RankItem extends Component {
         this.ScoreLabel.string = score + ''
         this.Bg.color = rank % 2 === 0 ? new Color('#343233') : new Color('#2f2e30')
     }
+
+    // public setUserInfo() {
+    //     const user_info = JSON.parse(sys.localStorage.getItem('user_info') || '{}') || {
+    //         nikeName: 'name',
+    //         avatarUrl: '',
+    //     }
+    //
+    //     this.NameLabel.string = user_info.nikeName || 'nikeName'
+    // }
 }
 

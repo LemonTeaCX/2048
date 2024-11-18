@@ -46,10 +46,15 @@ type Direction = 'left' | 'right' | 'up' | 'down'
 
 type GameState = 'playing' | 'menu' | 'rank' | 'over'
 
-
+type UserInfo = {
+    nickName: string
+    avatarUrl: string
+}
 
 @ccclass('Manager')
 export class Manager extends Component {
+    private userInfo: UserInfo | null = null
+
     // manager实例
     private static _instance: Manager = null
 
@@ -67,6 +72,9 @@ export class Manager extends Component {
 
     @property({ type: Label, tooltip: '结束模板分数' })
     private GameoverScoreLabel: Label | null = null
+
+    @property({ type: Label, tooltip: '结束模板总分' })
+    private GameoverTotalLabel: Label | null = null
 
     @property({ type: Node, tooltip: '结束重新开始按钮' })
     private RestartButton: Node | null = null
@@ -107,6 +115,9 @@ export class Manager extends Component {
     @property({ type: CCFloat, tooltip: '盒子移动过程总时间' })
     private moveTime: number = 0.2
 
+    // 每次更新盒子数量
+    private updateBoxNum: number = 0
+
     // 位置信息
     private positionList: Position[][] = []
 
@@ -144,10 +155,40 @@ export class Manager extends Component {
     }
 
     private init() {
+        // this.initLogin()
         this.initInstance()
         this.initEvent()
         this.initBox()
         this.initState()
+    }
+
+    private initLogin() {
+        // @ts-ignore
+        const dy = tt
+
+        if (!dy) return
+
+        dy.login({
+            success() {
+                console.log("登录成功");
+                // 调用 getUserInfo 前, 请确保登录成功
+                // 获取用户信息
+                dy.getUserInfo({
+                    // withCredentials: true,
+                    // withRealNameAuthenticationInfo: true,
+                    success(res: { userInfo: UserInfo }) {
+                        console.log(`getUserInfo 调用成功`, res.userInfo)
+
+                        this.userInfo = res.userInfo
+
+                        sys.localStorage.setItem('user_info', JSON.stringify(res.userInfo))
+                    },
+                    fail(res: { errMsg: string }) {
+                        console.log(`getUserInfo 调用失败`, res.errMsg);
+                    },
+                });
+            },
+        });
     }
 
     // 初始化实例
@@ -175,8 +216,8 @@ export class Manager extends Component {
         this.boxList = []
 
         // 初始化生成两个 box
-        this.randomBox()
-        this.randomBox()
+        this.randomBox(true)
+        this.randomBox(true)
 
         // 分数初始化
         this.score = 0
@@ -205,8 +246,6 @@ export class Manager extends Component {
             isTouching = true
 
             const { x, y } = event.getUIDelta()
-
-            console.log(Math.abs(x) , Math.abs(y))
 
             // 控制幅度
             if (Math.abs(Math.abs(x) - Math.abs(y)) < 0.4) return
@@ -297,9 +336,13 @@ export class Manager extends Component {
     }
 
     // 随机生成 1 个盒子
-    private randomBox() {
+    private randomBox(init: boolean = false) {
         if (this.boxList.length >= 16) {
             this.gameover()
+            return
+        }
+
+        if (!init && this.updateBoxNum === 0) {
             return
         }
 
@@ -325,6 +368,8 @@ export class Manager extends Component {
     private updateBox(direction: Direction) {
         const [ row, col ] = this.mapGrid
         let getIndexNum = (x: number, y: number) => ([ x, y ])
+
+        this.updateBoxNum = 0
 
         switch (direction) {
             case 'right':
@@ -397,16 +442,21 @@ export class Manager extends Component {
             this.panels['score'].setScore(this.score)
 
             this.isAudio && AudioController.Instance.playScore()
+
+            this.updateBoxNum++
         } else {
             // 只需要移动到上个盒子前一个位置
             let prePosition = new Vec3(...this.positionList[preIndex[0]][preIndex[1]], 0)
+
+            if (prePosition.x !== box.position.x || prePosition.y !== box.position.y) {
+                this.updateBoxNum++
+                this.isAudio && AudioController.Instance.playCreate()
+            }
 
             box.index = preIndex
             box.instance.move(direction, prePosition)
             box.position = prePosition
             isConcat = false
-
-            this.isAudio && AudioController.Instance.playCreate()
         }
 
         // console.log('box2', JSON.stringify(box.index), JSON.stringify(box.position))
@@ -498,11 +548,15 @@ export class Manager extends Component {
             this.rankItemInfo = { ...item, rank: index+1 }
             this.RankList.addChild(rankItem)
         })
+
+        // RankItem.setUserInfo()
     }
 
     private setTotalScore() {
         let scoreList: ScoreItem[] = JSON.parse(sys.localStorage.getItem('score_list') || '[]')
-        this.panels['total']?.setScore(scoreList[0].score)
+        let total = scoreList[0].score
+        this.panels['total']?.setScore(total)
+        this.GameoverTotalLabel.string = `最高分：${total}`
     }
 
     private initRankItemInstance(instance: RankItem) {

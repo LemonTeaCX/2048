@@ -324,6 +324,9 @@
     "GameoverScoreLabel": {
       "__id__": 22
     },
+    "GameoverTotalLabel": {
+      "__id__": 25
+    },
     "RestartButton": {
       "__id__": 26
     },
@@ -903,8 +906,8 @@
     "__prefab": null,
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 444.921875,
-      "height": 151.2
+      "width": 355.9375,
+      "height": 189
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -936,10 +939,10 @@
     "_string": "1200",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 200,
-    "_fontSize": 200,
+    "_actualFontSize": 160,
+    "_fontSize": 160,
     "_fontFamily": "Arial",
-    "_lineHeight": 120,
+    "_lineHeight": 150,
     "_overflow": 0,
     "_enableWrapText": true,
     "_font": null,

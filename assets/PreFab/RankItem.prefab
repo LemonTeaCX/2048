@@ -390,7 +390,7 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -180,
+      "x": -120,
       "y": 0,
       "z": 0
     },
@@ -432,7 +432,7 @@
     "_contentSize": {
       "__type__": "cc.Size",
       "width": 130.615234375,
-      "height": 50.4
+      "height": 100.8
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -468,12 +468,12 @@
       "a": 255
     },
     "_string": "name",
-    "_horizontalAlign": 1,
+    "_horizontalAlign": 0,
     "_verticalAlign": 1,
     "_actualFontSize": 50,
     "_fontSize": 50,
     "_fontFamily": "Arial",
-    "_lineHeight": 40,
+    "_lineHeight": 80,
     "_overflow": 0,
     "_enableWrapText": true,
     "_font": null,
@@ -730,6 +730,9 @@
     },
     "RankLabel": {
       "__id__": 11
+    },
+    "NameLabel": {
+      "__id__": 17
     },
     "ScoreLabel": {
       "__id__": 23
